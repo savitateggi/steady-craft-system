@@ -8,18 +8,19 @@ export interface Filters {
   mode: string;
   experience: string;
   source: string;
-  sort: "latest" | "oldest";
+  sort: "latest" | "oldest" | "matchScore" | "salary";
 }
 
 interface FilterBarProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
+  hasPreferences?: boolean;
 }
 
 const selectClass =
   "rounded-md border border-input bg-background px-sp-2 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-all duration-[180ms]";
 
-const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
+const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange, hasPreferences }) => {
   const set = (key: keyof Filters, value: string) => onChange({ ...filters, [key]: value });
 
   return (
@@ -53,6 +54,8 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
       <select value={filters.sort} onChange={(e) => set("sort", e.target.value as Filters["sort"])} className={selectClass}>
         <option value="latest">Latest First</option>
         <option value="oldest">Oldest First</option>
+        {hasPreferences && <option value="matchScore">Match Score</option>}
+        <option value="salary">Salary</option>
       </select>
     </div>
   );

@@ -8,6 +8,7 @@ interface JobCardProps {
   isSaved: boolean;
   onView: (job: Job) => void;
   onToggleSave: (jobId: string) => void;
+  matchScore?: number | null;
 }
 
 const sourceBadgeStyles: Record<Job["source"], string> = {
@@ -22,7 +23,14 @@ function formatPosted(days: number): string {
   return `${days} days ago`;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, isSaved, onView, onToggleSave }) => {
+function getScoreStyle(score: number): string {
+  if (score >= 80) return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (score >= 60) return "bg-amber-50 text-amber-700 border-amber-200";
+  if (score >= 40) return "bg-secondary text-secondary-foreground border-border";
+  return "bg-muted text-muted-foreground border-border";
+}
+
+const JobCard: React.FC<JobCardProps> = ({ job, isSaved, onView, onToggleSave, matchScore }) => {
   return (
     <article className="rounded-md border border-border bg-background p-sp-3 flex flex-col gap-sp-2 transition-all duration-[180ms] hover:border-muted-foreground/30">
       <div className="flex items-start justify-between gap-sp-2">
@@ -30,9 +38,16 @@ const JobCard: React.FC<JobCardProps> = ({ job, isSaved, onView, onToggleSave })
           <h3 className="text-base font-medium text-foreground leading-snug">{job.title}</h3>
           <p className="text-sm text-muted-foreground mt-0.5">{job.company}</p>
         </div>
-        <span className={`shrink-0 rounded-md border px-2 py-0.5 text-xs font-medium ${sourceBadgeStyles[job.source]}`}>
-          {job.source}
-        </span>
+        <div className="flex items-center gap-sp-1 shrink-0">
+          {matchScore != null && (
+            <span className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${getScoreStyle(matchScore)}`}>
+              {matchScore}%
+            </span>
+          )}
+          <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${sourceBadgeStyles[job.source]}`}>
+            {job.source}
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-x-sp-2 gap-y-1 text-sm text-muted-foreground">
