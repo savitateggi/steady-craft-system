@@ -3,15 +3,28 @@ import { jobs, Job } from "@/data/jobs";
 import JobCard from "@/components/JobCard";
 import JobDetailModal from "@/components/JobDetailModal";
 import { getSavedJobIds, toggleSavedJob } from "@/lib/savedJobs";
+import { getAllStatuses, setJobStatus, JobStatus } from "@/lib/jobStatus";
 import { Bookmark } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const SavedPage: React.FC = () => {
   const [savedIds, setSavedIds] = useState<string[]>(getSavedJobIds);
   const [viewJob, setViewJob] = useState<Job | null>(null);
+  const [statuses, setStatuses] = useState<Record<string, JobStatus>>(getAllStatuses);
+  const { toast } = useToast();
 
   const handleToggleSave = useCallback((id: string) => {
     setSavedIds(toggleSavedJob(id));
   }, []);
+
+  const handleStatusChange = useCallback((jobId: string, status: JobStatus) => {
+    const job = jobs.find((j) => j.id === jobId);
+    setJobStatus(jobId, status, job?.title ?? "", job?.company ?? "");
+    setStatuses(getAllStatuses());
+    if (status !== "Not Applied") {
+      toast({ title: `Status updated: ${status}` });
+    }
+  }, [toast]);
 
   const savedJobs = useMemo(() => jobs.filter((j) => savedIds.includes(j.id)), [savedIds]);
 
@@ -37,7 +50,15 @@ const SavedPage: React.FC = () => {
       </p>
       <div className="grid gap-sp-2 sm:grid-cols-2">
         {savedJobs.map((job) => (
-          <JobCard key={job.id} job={job} isSaved onView={setViewJob} onToggleSave={handleToggleSave} />
+          <JobCard
+            key={job.id}
+            job={job}
+            isSaved
+            onView={setViewJob}
+            onToggleSave={handleToggleSave}
+            status={statuses[job.id] ?? "Not Applied"}
+            onStatusChange={handleStatusChange}
+          />
         ))}
       </div>
       {viewJob && <JobDetailModal job={viewJob} onClose={() => setViewJob(null)} />}

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { getPreferences } from "@/lib/preferences";
 import { getTodayDigest, generateDigest, digestToPlainText, Digest } from "@/lib/digest";
+import { getStatusLog, StatusChange, getStatusStyle } from "@/lib/jobStatus";
 import { Button } from "@/components/ui/button";
-import { Mail, Copy, Sparkles, Settings, ExternalLink } from "lucide-react";
+import { Mail, Copy, Sparkles, Settings, ExternalLink, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,6 +11,12 @@ function formatDate(dateStr: string): string {
   const [y, m, d] = dateStr.split("-");
   const date = new Date(Number(y), Number(m) - 1, Number(d));
   return date.toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+}
+
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-IN", {
+    month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+  });
 }
 
 function getScoreStyle(score: number): string {
@@ -22,11 +29,13 @@ function getScoreStyle(score: number): string {
 const DigestPage: React.FC = () => {
   const prefs = useMemo(() => getPreferences(), []);
   const [digest, setDigest] = useState<Digest | null>(null);
+  const [statusLog, setStatusLog] = useState<StatusChange[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     const existing = getTodayDigest();
     if (existing) setDigest(existing);
+    setStatusLog(getStatusLog());
   }, []);
 
   const handleGenerate = () => {
@@ -50,7 +59,6 @@ const DigestPage: React.FC = () => {
     window.open(`mailto:?subject=${subject}&body=${body}`, "_self");
   };
 
-  // No preferences set
   if (!prefs) {
     return (
       <div className="flex flex-1 flex-col px-sp-3 py-sp-4 mx-auto w-full max-w-4xl">
@@ -86,7 +94,6 @@ const DigestPage: React.FC = () => {
 
       {digest && (
         <>
-          {/* Email-style newsletter card */}
           <div className="mt-sp-3 rounded-md border border-border bg-popover p-sp-4 shadow-sm">
             <div className="border-b border-border pb-sp-3 mb-sp-3">
               <h2 className="text-xl font-semibold text-foreground">Top 10 Jobs For You — 9AM Digest</h2>
@@ -130,7 +137,6 @@ const DigestPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Action buttons */}
           <div className="mt-sp-3 flex flex-wrap gap-sp-2">
             <Button variant="outline" onClick={handleCopy}>
               <Copy className="h-4 w-4" /> Copy Digest to Clipboard
@@ -142,6 +148,32 @@ const DigestPage: React.FC = () => {
 
           <p className="mt-sp-2 text-xs text-muted-foreground/60">Demo Mode: Daily 9AM trigger simulated manually.</p>
         </>
+      )}
+
+      {/* Recent Status Updates */}
+      {statusLog.length > 0 && (
+        <div className="mt-sp-4 rounded-md border border-border bg-popover p-sp-4 shadow-sm">
+          <div className="flex items-center gap-sp-2 mb-sp-3 pb-sp-2 border-b border-border">
+            <Activity className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold text-foreground">Recent Status Updates</h2>
+          </div>
+          <div className="divide-y divide-border">
+            {statusLog.slice(0, 15).map((entry, idx) => (
+              <div key={`${entry.jobId}-${idx}`} className="flex items-center justify-between gap-sp-2 py-sp-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground">{entry.jobTitle}</p>
+                  <p className="text-xs text-muted-foreground">{entry.company}</p>
+                </div>
+                <div className="flex items-center gap-sp-2 shrink-0">
+                  <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${getStatusStyle(entry.status)}`}>
+                    {entry.status}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{formatDateTime(entry.date)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

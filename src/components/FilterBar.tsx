@@ -1,5 +1,6 @@
 import React from "react";
 import { allLocations, allModes, allExperiences, allSources } from "@/data/jobs";
+import { allJobStatuses } from "@/lib/jobStatus";
 import { Search } from "lucide-react";
 
 export interface Filters {
@@ -9,6 +10,7 @@ export interface Filters {
   experience: string;
   source: string;
   sort: "latest" | "oldest" | "matchScore" | "salary";
+  status: string;
 }
 
 interface FilterBarProps {
@@ -50,6 +52,10 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange, hasPreferences
       <select value={filters.source} onChange={(e) => set("source", e.target.value)} className={selectClass}>
         <option value="">All Sources</option>
         {allSources.map((s) => <option key={s} value={s}>{s}</option>)}
+      </select>
+      <select value={filters.status} onChange={(e) => set("status", e.target.value)} className={selectClass}>
+        <option value="">All Statuses</option>
+        {allJobStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
       </select>
       <select value={filters.sort} onChange={(e) => set("sort", e.target.value as Filters["sort"])} className={selectClass}>
         <option value="latest">Latest First</option>
