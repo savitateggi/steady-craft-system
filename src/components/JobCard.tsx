@@ -2,6 +2,7 @@ import React from "react";
 import { Job } from "@/data/jobs";
 import { Button } from "@/components/ui/button";
 import { Bookmark, BookmarkCheck, ExternalLink, Eye } from "lucide-react";
+import { JobStatus, allJobStatuses, getStatusStyle } from "@/lib/jobStatus";
 
 interface JobCardProps {
   job: Job;
@@ -9,6 +10,8 @@ interface JobCardProps {
   onView: (job: Job) => void;
   onToggleSave: (jobId: string) => void;
   matchScore?: number | null;
+  status?: JobStatus;
+  onStatusChange?: (jobId: string, status: JobStatus) => void;
 }
 
 const sourceBadgeStyles: Record<Job["source"], string> = {
@@ -30,7 +33,7 @@ function getScoreStyle(score: number): string {
   return "bg-muted text-muted-foreground border-border";
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, isSaved, onView, onToggleSave, matchScore }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, isSaved, onView, onToggleSave, matchScore, status = "Not Applied", onStatusChange }) => {
   return (
     <article className="rounded-md border border-border bg-background p-sp-3 flex flex-col gap-sp-2 transition-all duration-[180ms] hover:border-muted-foreground/30">
       <div className="flex items-start justify-between gap-sp-2">
@@ -57,6 +60,23 @@ const JobCard: React.FC<JobCardProps> = ({ job, isSaved, onView, onToggleSave, m
         <span className="text-border">|</span>
         <span>{job.salaryRange}</span>
       </div>
+
+      {/* Status button group */}
+      {onStatusChange && (
+        <div className="flex flex-wrap gap-1">
+          {allJobStatuses.map((s) => (
+            <button
+              key={s}
+              onClick={() => onStatusChange(job.id, s)}
+              className={`rounded-md border px-2 py-0.5 text-xs font-medium transition-all duration-[180ms] ${
+                status === s ? getStatusStyle(s) : "border-transparent text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center justify-between pt-sp-1 border-t border-border">
         <span className="text-xs text-muted-foreground">{formatPosted(job.postedDaysAgo)}</span>

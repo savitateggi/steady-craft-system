@@ -6,9 +6,11 @@ import JobDetailModal from "@/components/JobDetailModal";
 import { getSavedJobIds, toggleSavedJob } from "@/lib/savedJobs";
 import { getPreferences } from "@/lib/preferences";
 import { computeMatchScore } from "@/lib/matchScore";
+import { getAllStatuses, setJobStatus, JobStatus } from "@/lib/jobStatus";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { Settings } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 function extractSalaryNum(s: string): number {
   const match = s.match(/(\d+)/);
@@ -23,10 +25,13 @@ const DashboardPage: React.FC = () => {
     experience: "",
     source: "",
     sort: "latest",
+    status: "",
   });
   const [savedIds, setSavedIds] = useState<string[]>(getSavedJobIds);
   const [viewJob, setViewJob] = useState<Job | null>(null);
   const [showOnlyMatches, setShowOnlyMatches] = useState(false);
+  const [statuses, setStatuses] = useState<Record<string, JobStatus>>(getAllStatuses);
+  const { toast } = useToast();
 
   const prefs = useMemo(() => getPreferences(), []);
   const hasPreferences = prefs !== null;
@@ -34,6 +39,15 @@ const DashboardPage: React.FC = () => {
   const handleToggleSave = useCallback((id: string) => {
     setSavedIds(toggleSavedJob(id));
   }, []);
+
+  const handleStatusChange = useCallback((jobId: string, status: JobStatus) => {
+    const job = jobs.find((j) => j.id === jobId);
+    setJobStatus(jobId, status, job?.title ?? "", job?.company ?? "");
+    setStatuses(getAllStatuses());
+    if (status !== "Not Applied") {
+      toast({ title: `Status updated: ${status}` });
+    }
+  }, [toast]);
 
   const jobsWithScores = useMemo(() => {
     return jobs.map((job) => ({
@@ -50,6 +64,13 @@ const DashboardPage: React.FC = () => {
     if (filters.mode) result = result.filter(({ job: j }) => j.mode === filters.mode);
     if (filters.experience) result = result.filter(({ job: j }) => j.experience === filters.experience);
     if (filters.source) result = result.filter(({ job: j }) => j.source === filters.source);
+
+    if (filters.status) {
+      result = result.filter(({ job: j }) => {
+        const s = statuses[j.id] ?? "Not Applied";
+        return s === filters.status;
+      });
+    }
 
     if (showOnlyMatches && prefs) {
       result = result.filter(({ matchScore }) => matchScore !== null && matchScore >= prefs.minMatchScore);
@@ -71,7 +92,7 @@ const DashboardPage: React.FC = () => {
     });
 
     return result;
-  }, [filters, jobsWithScores, showOnlyMatches, prefs]);
+  }, [filters, jobsWithScores, showOnlyMatches, prefs, statuses]);
 
   return (
     <div className="flex flex-1 flex-col px-sp-3 py-sp-4 mx-auto w-full max-w-5xl">
@@ -110,6 +131,8 @@ const DashboardPage: React.FC = () => {
             onView={setViewJob}
             onToggleSave={handleToggleSave}
             matchScore={matchScore}
+            status={statuses[job.id] ?? "Not Applied"}
+            onStatusChange={handleStatusChange}
           />
         ))}
       </div>
