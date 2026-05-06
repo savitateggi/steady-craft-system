@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Bell, TrendingUp, Briefcase } from "lucide-react";
+import heroImage from "@/assets/hero-kodnest.png";
 
 const LandingPage: React.FC = () => {
   const heroRef = useRef<HTMLDivElement>(null);
