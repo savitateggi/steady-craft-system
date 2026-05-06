@@ -224,6 +224,18 @@ const LandingPage: React.FC = () => {
             </span>
           ))}
         </div>
+
+        {/* Hero showcase image */}
+        <div className="mt-sp-5 w-full animate-fade-in" style={{ animationDelay: "480ms" }}>
+          <div className="relative mx-auto max-w-5xl rounded-2xl border border-white/40 bg-white/40 p-2 shadow-[0_30px_80px_-20px_hsl(var(--primary)/0.35)] backdrop-blur-xl">
+            <img
+              src={heroImage}
+              alt="KodNest precision-matched job discovery dashboard preview"
+              loading="lazy"
+              className="w-full rounded-xl"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Bottom fade */}
