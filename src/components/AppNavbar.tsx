@@ -21,7 +21,7 @@ const AppNavbar: React.FC = () => {
     }`;
 
   return (
-    <header className="border-b border-border bg-background">
+    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-sp-3 py-sp-2">
         <NavLink to="/" className="text-sm font-semibold text-foreground tracking-tight font-serif-display">
           KodNest
